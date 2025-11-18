@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import AnyUrl, BaseModel, Field
 from enum import Enum
 
 class CategoryType(str,Enum):
@@ -10,8 +10,8 @@ class CategoryType(str,Enum):
 
 class CategoryBase(BaseModel):
     name: str = Field(..., description = "Category name" , min_length=3, max_length=200)
-    description : str = Field(None, description = "Category description" , min_length=3, max_length=200)
-    icon_url: str = Field(None, description = "Category icon url")
+    description : Optional[str] = Field(None, description = "Category description" )
+    icon_url: Optional[AnyUrl] = Field(None, description = "Category icon url")
     type: CategoryType = Field(..., description = "Category type")
     parent_id: Optional[int] = Field(None, description="Parent category ID")
 
