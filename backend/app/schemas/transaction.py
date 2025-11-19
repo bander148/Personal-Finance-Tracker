@@ -3,6 +3,10 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 from typing import Optional
+
+from backend.app.schemas.category import CategoryResponse
+
+
 class TransactionType(str, Enum):
     income = "income"
     expense = "expense"
@@ -13,6 +17,9 @@ class TransactionBase(BaseModel):
     description : Optional[str] = Field(None, description="Transaction description",min_length=3,max_length=300)
     date : Optional[date] = Field(None, description="Transaction date")
     type : TransactionType = Field(..., description="Transaction type")
+    category : CategoryResponse = Field(..., description="Transaction category")
+    category_id : int = Field(..., description="Transaction category id")
+
 
 class TransactionCreate(TransactionBase):
     pass
