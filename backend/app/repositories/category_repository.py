@@ -13,11 +13,18 @@ class CategoryRepository():
     def get_by_name(self, name: str) -> Optional[Category]:
         return self.db.query(Category).filter(Category.name == name).first()
 
-    def get_all(self) -> List[Category]:
-        return self.db.query(Category).all()
-
+    def get_all(self, limit : int = 100, skip : int = 0 , sorted_by : str = "id" , sort_order : str = "asc") -> List[Category]:
+        if hasattr(Category, sorted_by):
+            if sort_order == "asc":
+                return self.db.query(Category).offset(skip).limit(limit).order_by(getattr(Category,sorted_by).asc()).all()
+            elif sort_order == "desc":
+                return self.db.query(Category).offset(skip).limit(limit).order_by(getattr(Category, sorted_by).desc()).all()
+            else :
+                raise ValueError("Invalid sort order")
+        else :
+            raise ValueError(f"Field '{sorted_by}' does not exist in Category model. Available fields: id, name")
     def create(self, data: CategoryCreate) -> Category:
-        category_db = Category(**data.model_dump())
+        category_db = Category(name=data.name)
         self.db.add(category_db)
         self.db.commit()
         self.db.refresh(category_db)
