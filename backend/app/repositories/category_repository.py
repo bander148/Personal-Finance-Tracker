@@ -3,7 +3,7 @@ from typing import List,Optional
 from ..schemas.category import CategoryCreate
 from ..models.category import Category
 
-class CategoryRepository():
+class CategoryRepository:
     def __init__(self, db: Session):
         self.db = db
 
