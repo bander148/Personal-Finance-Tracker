@@ -19,6 +19,7 @@ class TransactionBase(BaseModel):
     type : TransactionType = Field(..., description="Transaction type")
     category : CategoryResponse = Field(..., description="Transaction category")
     category_id : int = Field(..., description="Transaction category id")
+    created_at : datetime = Field(..., description="Transaction created at")
 
 
 class TransactionCreate(TransactionBase):
