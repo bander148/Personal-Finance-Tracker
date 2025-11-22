@@ -26,5 +26,5 @@ class TransactionRepository:
         self.db.commit()
         self.db.refresh(db_transaction)
         return db_transaction
-
-
+    def get_transaction_by_category(self, category : str) -> List[Transaction]:
+        return self.db.query(Transaction).filter(Transaction.category == category).all()
