@@ -5,7 +5,7 @@ from ..database import get_db
 from fastapi import APIRouter, Depends
 
 router = APIRouter(
-    prefix="api/transactions",
+    prefix="/api/transactions",
     tags=["transactions"]
 )
 

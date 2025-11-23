@@ -1,4 +1,3 @@
-
 from sqlalchemy.orm import Session
 from typing import List
 from ..repositories.category_repository import CategoryRepository
@@ -6,12 +5,11 @@ from ..schemas.category import CategoryResponse, CategoryCreate
 from fastapi import HTTPException, status
 
 class CategoryService:
-
     def __init__(self, db: Session):
         self.repository = CategoryRepository(db)
 
     def get_all_categories(self) -> List[CategoryResponse]:
-        categories= self.repository.get_all()
+        categories = self.repository.get_all()
         return [CategoryResponse.model_validate(cat) for cat in categories]
 
     def get_category_by_id(self, category_id: int) -> CategoryResponse:
@@ -28,7 +26,7 @@ class CategoryService:
         if existing_category:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Category'{category_data.name}' does exist"
+                detail=f"Category '{category_data.name}' already exists"
             )
         if category_data.parent_id:
             parent = self.repository.get_by_id(category_data.parent_id)

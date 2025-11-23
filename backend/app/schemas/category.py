@@ -1,27 +1,27 @@
 from typing import Optional
-
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import BaseModel
 from enum import Enum
 
-class CategoryType(str,Enum):
+
+class CategoryType(str, Enum):
     INCOME = "income"
     EXPENSE = "expense"
     TRANSFER = "transfer"
 
-class CategoryBase(BaseModel):
-    name: str = Field(..., description = "Category name" , min_length=3, max_length=200)
-    description : Optional[str] = Field(None, description = "Category description" )
-    icon_url: Optional[AnyUrl] = Field(None, description = "Category icon url")
-    type: CategoryType = Field(..., description = "Category type")
-    parent_id: Optional[int] = Field(None, description="Parent category ID")
+
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    type: CategoryType
+    parent_id: Optional[int] = None
 
 
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    type: CategoryType
+    parent_id: Optional[int]
 
-class CategoryCreate(CategoryBase):
-    pass
-
-
-class CategoryResponse(CategoryBase):
-    id : int = Field(...,description='Unique category identifier')
     class Config:
         from_attributes = True

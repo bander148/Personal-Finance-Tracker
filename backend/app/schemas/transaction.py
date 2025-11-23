@@ -1,8 +1,7 @@
 from datetime import date, datetime
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
-from .category import CategoryResponse
 
 
 class TransactionType(str, Enum):
@@ -11,24 +10,14 @@ class TransactionType(str, Enum):
     transfer = "transfer"
 
 
-# Упрощенные схемы без Field в аннотациях
-class TransactionBase(BaseModel):
+# Максимально простые схемы без Field
+class TransactionCreate(BaseModel):
     amount: float
     name: str
     description: Optional[str] = None
     date: Optional[date] = None
     type: TransactionType
     category_id: int
-    created_at: datetime
-
-
-class TransactionCreate(BaseModel):
-    amount: float = Field(..., gt=0, description="Transaction amount")
-    name: str = Field(..., min_length=1, description="Transaction name")
-    description: Optional[str] = Field(None, min_length=3, max_length=300, description="Transaction description")
-    date: Optional[date] = Field(default_factory=date.today, description="Transaction date")
-    type: TransactionType = Field(..., description="Transaction type")
-    category_id: int = Field(..., description="Transaction category ID")
 
 
 class TransactionResponse(BaseModel):
@@ -40,8 +29,6 @@ class TransactionResponse(BaseModel):
     type: TransactionType
     category_id: int
     created_at: datetime
-    category: CategoryResponse
 
     class Config:
         from_attributes = True
-

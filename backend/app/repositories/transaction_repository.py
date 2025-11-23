@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..models.transaction import Transaction
 from ..schemas.transaction import TransactionCreate
 from typing import List, Optional
+from datetime import datetime
 
 class TransactionRepository:
     def __init__(self, db: Session):
@@ -21,9 +22,16 @@ class TransactionRepository:
         return self.db.query(Transaction).filter(Transaction.id == transaction_id).first()
 
     def create_transaction(self, transaction: TransactionCreate) -> Transaction:
-        # Преобразуем схему Pydantic в словарь и создаем модель
-        transaction_data = transaction.model_dump()
-        db_transaction = Transaction(**transaction_data)
+        # Простое создание без сложных преобразований
+        db_transaction = Transaction(
+            name=transaction.name,
+            amount=transaction.amount,
+            description=transaction.description,
+            date=transaction.date,
+            type=transaction.type.value,
+            category_id=transaction.category_id,
+            created_at=datetime.now()  # Автоматически устанавливаем текущее время
+        )
         self.db.add(db_transaction)
         self.db.commit()
         self.db.refresh(db_transaction)
