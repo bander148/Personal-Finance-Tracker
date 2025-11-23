@@ -11,20 +11,20 @@ class TransactionRepository:
     def get_all(self) -> List[Transaction]:
         return self.db.query(Transaction).all()
 
-    def get_by_date(self, tr_date : date) -> List[Transaction]:
+    def get_by_date(self, tr_date: date) -> List[Transaction]:
         return self.db.query(Transaction).filter(Transaction.date == tr_date).all()
 
-    def get_by_category_id(self, category_id : int)-> List[Transaction]:
+    def get_by_category_id(self, category_id: int) -> List[Transaction]:
         return self.db.query(Transaction).filter(Transaction.category_id == category_id).all()
 
-    def get_by_transaction_id(self, transaction_id : int) -> Optional[Transaction]:
+    def get_by_transaction_id(self, transaction_id: int) -> Optional[Transaction]:
         return self.db.query(Transaction).filter(Transaction.id == transaction_id).first()
 
     def create_transaction(self, transaction: TransactionCreate) -> Transaction:
-        db_transaction = Transaction(**transaction.model_dump())
+        # Преобразуем схему Pydantic в словарь и создаем модель
+        transaction_data = transaction.model_dump()
+        db_transaction = Transaction(**transaction_data)
         self.db.add(db_transaction)
         self.db.commit()
         self.db.refresh(db_transaction)
         return db_transaction
-    def get_transaction_by_category(self, category : str) -> List[Transaction]:
-        return self.db.query(Transaction).filter(Transaction.category == category).all()
