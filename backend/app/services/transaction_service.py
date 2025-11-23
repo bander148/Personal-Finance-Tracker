@@ -18,7 +18,7 @@ class TransactionService:
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
     def get_transactions_by_category(self, category : str) -> List[TransactionResponse]:
-        transactions = self.repository.get_by_category(category)
+        transactions = self.repository.get_by_category_id(category)
         if not transactions :
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Category not found")
         return [TransactionResponse.model_validate(trans) for trans in transactions]
@@ -33,7 +33,7 @@ class TransactionService:
         category = self.category_repository.get_by_id(category_id)
         if not category :
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Category with {category_id} id is not found")
-        transactions = self.repository.get_by_category(category.name)
+        transactions = self.repository.get_by_category_id(category.id)
         return [TransactionResponse.model_validate(transaction) for transaction in transactions]
 
     def get_trans_by_date(self, date : date) -> List[TransactionResponse]:

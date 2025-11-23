@@ -11,8 +11,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
     ]
-    static_path: str = "static"
-    images_path: str = "static/images"
+    static_dir: str = "static"
 
     class Config:
         env_file = ".env"

@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from config import settings
+from .config import settings
 
 engine = create_engine(
     settings.database_url,
@@ -16,4 +16,5 @@ def get_db():
     finally:
         db.close()
 def init_db():
+    from .models import category,transaction
     Base.metadata.create_all(bind = engine)
