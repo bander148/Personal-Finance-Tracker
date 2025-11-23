@@ -17,13 +17,17 @@ class TransactionBase(BaseModel):
     description : Optional[str] = Field(None, description="Transaction description",min_length=3,max_length=300)
     date : Optional[date] = Field(None, description="Transaction date")
     type : TransactionType = Field(..., description="Transaction type")
-    category : CategoryResponse = Field(..., description="Transaction category")
     category_id : int = Field(..., description="Transaction category id")
     created_at : datetime = Field(..., description="Transaction created at")
 
 
-class TransactionCreate(TransactionBase):
-    pass
+class TransactionCreate(BaseModel):
+    amount: float = Field(..., gt=0)
+    name: str = Field(...)
+    description: Optional[str] = Field(None, min_length=3, max_length=300)
+    date: Optional[date] = Field(default_factory=date.today)
+    type: TransactionType = Field(...)
+    category_id: int = Field(...)
 
 class TransactionResponse(TransactionBase):
     id: int = Field(..., description="Transaction ID")

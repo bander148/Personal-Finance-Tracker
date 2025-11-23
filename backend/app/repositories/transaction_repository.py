@@ -14,8 +14,8 @@ class TransactionRepository:
     def get_by_date(self, tr_date : date) -> List[Transaction]:
         return self.db.query(Transaction).filter(Transaction.date == tr_date).all()
 
-    def get_by_category(self, category)-> List[Transaction]:
-        return self.db.query(Transaction).filter(Transaction.category == category).all()
+    def get_by_category_id(self, category_id : int)-> List[Transaction]:
+        return self.db.query(Transaction).filter(Transaction.category_id == category_id).all()
 
     def get_by_transaction_id(self, transaction_id : int) -> Optional[Transaction]:
         return self.db.query(Transaction).filter(Transaction.id == transaction_id).first()

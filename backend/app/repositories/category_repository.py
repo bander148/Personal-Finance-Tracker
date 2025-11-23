@@ -24,7 +24,13 @@ class CategoryRepository:
         else :
             raise ValueError(f"Field '{sorted_by}' does not exist in Category model. Available fields: id, name")
     def create(self, data: CategoryCreate) -> Category:
-        category_db = Category(name=data.name)
+        category_db = Category(
+            name=data.name,
+            description=data.description,
+            icon_url=str(data.icon_url) if data.icon_url else None,
+            type=data.type.value,
+            parent_id=data.parent_id
+        )
         self.db.add(category_db)
         self.db.commit()
         self.db.refresh(category_db)
