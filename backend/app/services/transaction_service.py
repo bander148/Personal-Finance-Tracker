@@ -1,11 +1,9 @@
 from sqlalchemy.orm import Session
 from datetime import date
-from ..models.category import Category
-from ..schemas.category import CategoryResponse
 from ..schemas.transaction import TransactionCreate,TransactionResponse
 from ..repositories.transaction_repository import TransactionRepository
 from .. repositories.category_repository import CategoryRepository
-from typing import List, Optional
+from typing import List
 from fastapi import HTTPException, status
 
 class TransactionService:

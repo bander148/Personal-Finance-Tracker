@@ -27,8 +27,15 @@ class CategoryService:
         existing_category = self.repository.get_by_name(category_data.name)
         if existing_category:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Category'{category_data.name}' does exist"
             )
+        if category_data.parent_id:
+            parent = self.repository.get_by_id(category_data.parent_id)
+            if not parent:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Parent category with id {category_data.parent_id} not found"
+                )
         category = self.repository.create(category_data)
         return CategoryResponse.model_validate(category)

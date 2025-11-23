@@ -18,7 +18,7 @@ class TransactionRepository:
         return self.db.query(Transaction).filter(Transaction.category == category).all()
 
     def get_by_transaction_id(self, transaction_id : int) -> Optional[Transaction]:
-        return self.db.query(Transaction).filter(Transaction.id == transaction_id).all()
+        return self.db.query(Transaction).filter(Transaction.id == transaction_id).first()
 
     def create_transaction(self, transaction: TransactionCreate) -> Transaction:
         db_transaction = Transaction(**transaction.model_dump())

@@ -27,6 +27,7 @@ class TransactionCreate(TransactionBase):
 
 class TransactionResponse(TransactionBase):
     id: int = Field(..., description="Transaction ID")
+    category: CategoryResponse = Field(...)
     created_at: datetime = Field(..., description="Transaction created at")
     class Config:
         from_attributes = True
