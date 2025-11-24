@@ -18,4 +18,5 @@ class Transaction(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     def __repr__(self):
-        return f"<Transaction(id={self.id}, name='{self.name}', amount={self.amount})>"
+        return f"<Transaction(id={self.id}, name='{self.name}', amount={self.amount} , date={self.date},\
+         type={self.type}, category_id={self.category_id}, user_id={self.user_id})>"

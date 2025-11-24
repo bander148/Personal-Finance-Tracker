@@ -11,3 +11,6 @@ class User(Base):
     created_at = Column(DateTime, nullable=False)
     name = Column(String(100), nullable=False, index=True,default="User")
     transactions = relationship("Transaction", back_populates="user")
+
+    def __repr__(self):
+        return f"<User(id={self.id}, email={self.email}, name={self.name})>"
