@@ -9,11 +9,17 @@ class TransactionRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self) -> List[Transaction]:
-        return self.db.query(Transaction).all()
+    def get_all(self, skip: int = 0, limit: int = 100) -> List[Transaction]:
+        return self.db.query(Transaction).offset(skip).limit(limit).all()
 
     def get_by_date(self, tr_date: date) -> List[Transaction]:
         return self.db.query(Transaction).filter(Transaction.date == tr_date).all()
+
+    def get_by_date_range(self, start_date: date, end_date: date) -> List[Transaction]:
+        return self.db.query(Transaction).filter(
+            Transaction.date >= start_date,
+            Transaction.date <= end_date
+        ).all()
 
     def get_by_category_id(self, category_id: int) -> List[Transaction]:
         return self.db.query(Transaction).filter(Transaction.category_id == category_id).all()
@@ -21,18 +27,23 @@ class TransactionRepository:
     def get_by_transaction_id(self, transaction_id: int) -> Optional[Transaction]:
         return self.db.query(Transaction).filter(Transaction.id == transaction_id).first()
 
+    def get_by_type(self, transaction_type: str) -> List[Transaction]:
+        return self.db.query(Transaction).filter(Transaction.type == transaction_type).all()
+
     def create_transaction(self, transaction: TransactionCreate) -> Transaction:
-        # Простое создание без сложных преобразований
-        db_transaction = Transaction(
-            name=transaction.name,
-            amount=transaction.amount,
-            description=transaction.description,
-            date=transaction.date,
-            type=transaction.type.value,
-            category_id=transaction.category_id,
-            created_at=datetime.now()  # Автоматически устанавливаем текущее время
-        )
+        transaction_data = transaction.model_dump()
+        if 'created_at' not in transaction_data:
+            transaction_data['created_at'] = date.today()
+        db_transaction = Transaction(**transaction_data)
         self.db.add(db_transaction)
         self.db.commit()
         self.db.refresh(db_transaction)
         return db_transaction
+
+    def delete_transaction(self, transaction_id: int) -> bool:
+        db_transaction = self.get_by_transaction_id(transaction_id)
+        if  not db_transaction:
+            return False
+        self.db.delete(db_transaction)
+        self.db.commit()
+        return True
