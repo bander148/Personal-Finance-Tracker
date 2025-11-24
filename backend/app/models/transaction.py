@@ -15,6 +15,7 @@ class Transaction(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
     category = relationship("Category", back_populates="transactions")
     user = relationship("User", back_populates="transactions")
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     def __repr__(self):
         return f"<Transaction(id={self.id}, name='{self.name}', amount={self.amount})>"
