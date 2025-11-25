@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List,Union
+import secrets
 
 class Settings(BaseSettings):
     app_name: str = "Personal Finance Tracker"
@@ -12,6 +13,15 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
     ]
     static_dir: str = "static"
+
+    secret_key: str = secrets.token_urlsafe(32)
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+
+    cookie_domain: str = "localhost"
+    cookie_secure: bool = False
+    cookie_samesite: str = "lax"
 
     class Config:
         env_file = ".env"
