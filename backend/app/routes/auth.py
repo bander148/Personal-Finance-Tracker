@@ -7,7 +7,7 @@ from ..services.auth_service import AuthorizationService
 from ..repositories.user_repository import UserRepository
 from ..schemas.user import UserCreate, UserResponse, UserLogin
 from ..dependencies.auth import get_current_user
-
+from ..config import settings
 router = APIRouter(
     prefix="/api/auth",
     tags=["authentication"]
@@ -26,7 +26,7 @@ def register(
     auth_service.set_tokens_cookies(response,access_token,refresh_token)
     return user
 
-@router.get("/login", response_model=UserResponse)
+@router.post("/login", response_model=UserResponse)
 def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db),
@@ -52,3 +52,29 @@ def get_current_user_info(current_user : User =  Depends(get_current_user)):
 @router.post("/validate", response_model=UserResponse)
 def validate_token(current_user : User =  Depends(get_current_user)):
     return { "valid": True,"user" : current_user.email }
+
+@router.get("/refresh", response_model=UserResponse)
+def refresh_token(
+        request : Request,
+        response: Response,
+        db: Session = Depends(get_db),
+):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token not found"
+        )
+    user_repository = UserRepository(db)
+    auth_service = AuthorizationService(user_repository)
+    new_access_token = auth_service.refresh_tokens(refresh_token)
+    response.set_cookie(
+        key="access_token",
+        value=new_access_token,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        domain=settings.cookie_domain,
+        max_age=settings.access_token_expire_minutes * 60
+    )
+    return {"message": "Access token refreshed"}
