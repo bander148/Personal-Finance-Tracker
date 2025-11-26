@@ -7,7 +7,7 @@ from ..schemas.user import UserCreate, UserLogin
 from ..core.security import jwt_manager
 from ..config import settings
 
-class AuthorizationService():
+class AuthorizationService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
