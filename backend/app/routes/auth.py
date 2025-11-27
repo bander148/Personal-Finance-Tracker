@@ -29,8 +29,8 @@ def register(
 @router.post("/login", response_model=UserResponse)
 def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
+        response: Response = None,
         db: Session = Depends(get_db),
-        response: Response = None
 ):
     user_repository = UserRepository(db)
     auth_service = AuthorizationService(user_repository)

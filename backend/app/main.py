@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .config import settings
 from .database import init_db
-from .routes import categories,transactions
+from .routes import categories,transactions,auth
 import os
 app = FastAPI(
     title=settings.app_name,
@@ -22,6 +22,7 @@ os.makedirs(settings.static_dir, exist_ok=True)
 app.mount('/static', StaticFiles(directory=settings.static_dir), name='static')
 app.include_router(categories.router)
 app.include_router(transactions.router)
+app.include_router(auth.router)
 
 @app.on_event('startup')
 def on_startup():

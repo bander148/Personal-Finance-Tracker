@@ -36,7 +36,7 @@ class AuthorizationService:
         refresh_token = jwt_manager.create_refresh_token(token_data)
 
         return access_token, refresh_token
-    def varify_token(self, token : str):
+    def verify_token(self, token : str):
         return jwt_manager.varify_token(token)
 
     def refresh_tokens(self, refresh_token : str):

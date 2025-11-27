@@ -15,14 +15,15 @@ class TransactionService:
 
     def get_all_transactions(
         self,
+        user_id: int,
         skip: int = 0,
         limit: int = 100
     ) -> List[TransactionResponse]:
-        transactions = self.repository.get_all(skip=skip, limit=limit)
+        transactions = self.repository.get_by_user_id(skip=skip, limit=limit)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
-    def get_transaction_by_id(self, id: int) -> TransactionResponse:
-        transaction = self.repository.get_by_transaction_id(id)
+    def get_transaction_by_id(self, transaction_id: int,user_id : int) -> TransactionResponse:
+        transaction = self.repository.get_by_transaction_id_and_user(transaction_id,user_id)
         if not transaction:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -57,19 +58,20 @@ class TransactionService:
         transactions = self.repository.get_by_type(transaction_type)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
-    def create_transaction(self, transaction: TransactionCreate) -> TransactionResponse:
+    def create_transaction(self, transaction: TransactionCreate,user_id: int) -> TransactionResponse:
         category = self.category_repository.get_by_id(transaction.category_id)
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Category with id {transaction.category_id} not found"
             )
-
+        transaction_data = transaction.model_dump()
+        transaction_data['user_id'] = user_id
         db_transaction = self.repository.create_transaction(transaction)
         return TransactionResponse.model_validate(db_transaction)
 
-    def delete_transaction(self, transaction_id: int) -> dict:
-        success = self.repository.delete_transaction(transaction_id)
+    def delete_transaction(self, transaction_id: int,user_id: int) -> dict:
+        success = self.repository.delete_transaction(transaction_id,user_id)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

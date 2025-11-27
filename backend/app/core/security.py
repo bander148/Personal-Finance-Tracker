@@ -44,7 +44,7 @@ class JWTManager:
         return jwt.encode(to_encode, self._key, headers=header)
 
     def refresh_access_token(self, refresh_token: str) -> Optional[Dict[str, Any]]:
-        payload = jwt.verify(refresh_token)
+        payload = jwt.verify_token(refresh_token)
         if not payload or payload.get('type') != 'refresh':
             return None
         access_token_data = {

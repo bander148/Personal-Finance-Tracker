@@ -8,8 +8,8 @@ from ..repositories.user_repository import UserRepository
 security = HTTPBearer(auto_error=False)
 
 async def get_current_user(
+        request : Request,
         db: Session = Depends(get_db),
-        request : Request = None,
         credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     user_repository = UserRepository(db)
