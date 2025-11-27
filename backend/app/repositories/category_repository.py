@@ -8,21 +8,23 @@ class CategoryRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_id(self, cat_id: int,user_id:int) -> Optional[Category]:
+    def get_user_category_by_id(self, cat_id: int,user_id:int) -> Optional[Category]:
         return self.db.query(Category).filter(
         Category.id == cat_id,or_(
                 Category.user_id == user_id,
                 Category.user_id.is_(None))
         ).first()
 
-    def get_by_name(self, name: str, user_id:int) -> Optional[Category]:
+    def get_user_cat_by_name_cat(self, name: str, user_id:int) -> Optional[Category]:
         return self.db.query(Category).filter(
             Category.name == name, or_(
                 Category.user_id == user_id,
                 Category.user_id.is_(None))
         ).first()
+    def get_system_category_by_id(self, cat_id: int) -> Optional[Category]:
+        return self.db.query(Category).filter(Category.id == cat_id,Category.user_id.is_(None)).first()
 
-    def create(self, data: CategoryCreate, user_id  : int = None) -> Category:
+    def create(self, data: CategoryCreate, user_id  : int ) -> Category:
         category_db = Category(
             name=data.name,
             description=data.description,
