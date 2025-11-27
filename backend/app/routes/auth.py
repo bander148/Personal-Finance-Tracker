@@ -74,7 +74,14 @@ def get_current_user_info(current_user : User =  Depends(get_current_user)):
 
 @router.post("/validate", response_model=UserResponse)
 def validate_token(current_user : User =  Depends(get_current_user)):
-    return { "valid": True,"user" : current_user.email }
+    try:
+        return current_user
+    except Exception as e:
+        print(f"🔴 ERROR in validate: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token validation failed"
+        )
 
 @router.get("/refresh", response_model=UserResponse)
 def refresh_token(
