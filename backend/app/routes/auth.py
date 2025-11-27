@@ -83,31 +83,98 @@ def validate_token(current_user : User =  Depends(get_current_user)):
             detail="Token validation failed"
         )
 
-@router.get("/refresh", response_model=UserResponse)
+
+
+@router.get("/refresh")
 def refresh_token(
-        request : Request,
+        request: Request,
         response: Response,
         db: Session = Depends(get_db),
 ):
-    refresh_token = request.cookies.get("refresh_token")
-    if not refresh_token:
+    try:
+        print(f"🔧 DEBUG: Refresh endpoint called")
+        print(f"🔧 DEBUG: Cookies: {dict(request.cookies)}")
+
+        refresh_token_cookie = request.cookies.get("refresh_token")
+
+        if not refresh_token_cookie:
+            print("🔧 DEBUG: No refresh_token in cookies")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token not found"
+            )
+
+        print(f"🔧 DEBUG: Refresh token found: {refresh_token_cookie[:50]}...")
+
+        user_repository = UserRepository(db)
+        auth_service = AuthorizationService(user_repository)
+
+        print(f"🔧 DEBUG: Starting token refresh process...")
+
+        print(f"🔧 DEBUG: Step 1 - Verifying token...")
+        payload = auth_service.verify_token(refresh_token_cookie)
+        print(f"🔧 DEBUG: Token payload: {payload}")
+
+        if not payload:
+            print("🔧 DEBUG: ❌ Token verification FAILED")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token"
+            )
+
+        print(f"🔧 DEBUG: Step 2 - Checking token type...")
+        token_type = payload.get('type')
+        print(f"🔧 DEBUG: Token type: {token_type}")
+
+        if token_type != 'refresh':
+            print(f"🔧 DEBUG: ❌ Wrong token type: {token_type}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type"
+            )
+
+        print(f"🔧 DEBUG: Step 3 - Finding user...")
+        email = payload.get('email')
+        print(f"🔧 DEBUG: Looking for user with email: {email}")
+
+        user = user_repository.get_by_email(email)
+        if not user:
+            print(f"🔧 DEBUG: ❌ User not found: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+
+        print(f"🔧 DEBUG: ✅ User found: {user.email} (ID: {user.id})")
+
+        print(f"🔧 DEBUG: Step 4 - Creating new access token...")
+        access_token, new_refresh_token = auth_service.create_tokens(user.id, user.email)
+        print(f"🔧 DEBUG: ✅ New access token created: {access_token[:50]}...")
+
+        print(f"🔧 DEBUG: Step 5 - Setting new cookies...")
+        auth_service.set_access_token_cookie(response, access_token)
+
+        auth_service.set_tokens_cookies(response, access_token, new_refresh_token)
+
+        print(f"🔧 DEBUG: ✅ Token refresh completed successfully")
+
+        return {
+            "message": "Access token refreshed successfully",
+            "user_id": user.id,
+            "email": user.email
+        }
+
+    except HTTPException:
+        print("🔧 DEBUG: HTTPException raised in refresh")
+        raise
+    except Exception as e:
+        print(f"🔴 ERROR in refresh: {str(e)}")
+        import traceback
+        print(f"🔴 TRACEBACK: {traceback.format_exc()}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token refresh failed"
         )
-    user_repository = UserRepository(db)
-    auth_service = AuthorizationService(user_repository)
-    new_access_token = auth_service.refresh_tokens(refresh_token)
-    response.set_cookie(
-        key="access_token",
-        value=new_access_token,
-        httponly=True,
-        secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
-        domain=settings.cookie_domain,
-        max_age=settings.access_token_expire_minutes * 60
-    )
-    return {"message": "Access token refreshed"}
 @router.get("/debug/cookies")
 def debug_cookies(request: Request):
     """Проверка получения cookies на сервере"""

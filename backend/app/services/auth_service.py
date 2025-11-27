@@ -63,14 +63,68 @@ class AuthorizationService:
     def verify_token(self, token : str):
         return jwt_manager.verify_token(token)
 
-    def refresh_tokens(self, refresh_token : str):
-        new_access_token = jwt_manager.refresh_access_token(refresh_token)
-        if not new_access_token:
+    def refresh_tokens(self, refresh_token: str):
+        try:
+            print(f"🔧 DEBUG: Starting token refresh...")
+            print(f"🔧 DEBUG: Refresh token: {refresh_token[:50]}...")
+
+
+            print(f"🔧 DEBUG: Step 1 - Verifying token...")
+            payload = self.verify_token(refresh_token)
+            print(f"🔧 DEBUG: Token payload: {payload}")
+
+            if not payload:
+                print("🔧 DEBUG: ❌ Token verification FAILED")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid refresh token"
+                )
+
+
+            print(f"🔧 DEBUG: Step 2 - Checking token type...")
+            token_type = payload.get('type')
+            print(f"🔧 DEBUG: Token type: {token_type}")
+
+            if token_type != 'refresh':
+                print(f"🔧 DEBUG: ❌ Wrong token type: {token_type}")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token type"
+                )
+
+
+            print(f"🔧 DEBUG: Step 3 - Finding user...")
+            email = payload.get('email')
+            print(f"🔧 DEBUG: Looking for user with email: {email}")
+
+            user = self.user_repository.get_by_email(email)
+            if not user:
+                print(f"🔧 DEBUG: ❌ User not found: {email}")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="User not found"
+                )
+
+            print(f"🔧 DEBUG: ✅ User found: {user.email} (ID: {user.id})")
+
+
+            print(f"🔧 DEBUG: Step 4 - Creating new access token...")
+            new_access_token = self.create_tokens(user.id, user.email)[0]
+            print(f"🔧 DEBUG: ✅ New access token created: {new_access_token[:50]}...")
+
+            return new_access_token
+
+        except HTTPException:
+            print("🔧 DEBUG: 🚨 HTTPException raised in refresh_tokens")
+            raise
+        except Exception as e:
+            print(f"🔴 ERROR in refresh_tokens: {e}")
+            import traceback
+            print(f"🔴 TRACEBACK: {traceback.format_exc()}")
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid refresh token"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Token refresh failed"
             )
-        return new_access_token
 
     def set_tokens_cookies(self, response: Response, access_token: str, refresh_token: str):
         response.set_cookie(
@@ -98,3 +152,17 @@ class AuthorizationService:
     def clear_tokens_cookies(self, response: Response):
         response.delete_cookie("access_token", domain=settings.cookie_domain)
         response.delete_cookie("refresh_token", domain=settings.cookie_domain)
+
+    def set_access_token_cookie(self, response: Response, access_token: str):
+        """Установка только access_token cookie"""
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=settings.cookie_secure,
+            samesite=settings.cookie_samesite,
+            domain=settings.cookie_domain if settings.cookie_domain else None,
+            max_age=settings.access_token_expire_minutes * 60,
+            path="/"
+        )
+        print(f"🔧 DEBUG: New access token cookie set: {access_token[:30]}...")
