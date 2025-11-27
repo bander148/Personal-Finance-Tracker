@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     ]
     static_dir: str = "static"
 
-    secret_key: str = secrets.token_urlsafe(32)
+    secret_key: str = "FinTrack@2024$Secure*Key#For%Personal&Budget"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7

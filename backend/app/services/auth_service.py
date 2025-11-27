@@ -37,7 +37,7 @@ class AuthorizationService:
 
         return access_token, refresh_token
     def verify_token(self, token : str):
-        return jwt_manager.varify_token(token)
+        return jwt_manager.verify_token(token)
 
     def refresh_tokens(self, refresh_token : str):
         new_access_token = jwt_manager.refresh_access_token(refresh_token)

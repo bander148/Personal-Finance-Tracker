@@ -8,7 +8,7 @@ class JWTManager:
     def __init__(self):
         self.secret_key = settings.secret_key
         self.algorithm = settings.algorithm
-        self._key = JsonWebKey.generate_key('oct', 256, is_private=True)
+        self._key = JsonWebKey.import_key({'kty': 'oct','k': self.secret_key })
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()
@@ -29,22 +29,22 @@ class JWTManager:
             decoded = jwt.decode(token,self._key)
             decoded.validate()
             return decoded
-        except jwt.InvalidTokenError:
+        except JoseError:
             return None
 
     def create_refresh_token(self, data: Dict[str, Any]) -> str:
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes = settings.refresh_token_expire_minutes)
+        expire = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
         to_encode.update({
             'exp': expire,
             'iat': datetime.utcnow(),
             'type': 'refresh'
         })
         header = {"alg": self.algorithm}
-        return jwt.encode(to_encode, self._key, headers=header)
+        return jwt.encode(header, to_encode, self._key)
 
     def refresh_access_token(self, refresh_token: str) -> Optional[Dict[str, Any]]:
-        payload = jwt.verify_token(refresh_token)
+        payload = self.verify_token(refresh_token)
         if not payload or payload.get('type') != 'refresh':
             return None
         access_token_data = {
