@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..schemas.user import UserCreate
 from passlib.context import CryptContext
 from ..models.user import User
-pwd_context = CryptContext(schemes = ['bcrypt'], deprecated = 'auto')
+pwd_context = CryptContext(schemes = ['sha256_crypt'], deprecated = 'auto',bcrypt__max_password_length=72)
 
 class UserRepository:
     def __init__(self, db:Session):
@@ -17,7 +17,12 @@ class UserRepository:
         return self.db.query(User).filter(User.id == id).first()
 
     def create_user(self, user_data: UserCreate) -> User:
-        hashed_password = pwd_context.hash(user_data.password)
+        if self.get_by_email(user_data.email):
+            raise ValueError("User with this email already exists")
+        password = user_data.password
+        if len(password.encode('utf-8')) > 72:
+            password = password[:50]
+        hashed_password = pwd_context.hash(password)
         db_user = User(
             email = user_data.email,
             hashed_password= hashed_password,

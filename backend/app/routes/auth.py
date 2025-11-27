@@ -19,25 +19,48 @@ def register(
         response: Response ,
         db: Session = Depends(get_db),
 ):
-    user_repository = UserRepository(db)
-    auth_service = AuthorizationService(user_repository)
-    user = user_repository.create_user(user_data)
-    access_token,refresh_token = auth_service.create_tokens(user.id,user.email)
-    auth_service.set_tokens_cookies(response,access_token,refresh_token)
-    return user
+    try:
+        user_repository = UserRepository(db)
+        auth_service = AuthorizationService(user_repository)
+        user = auth_service.register_user(user_data)
+        access_token,refresh_token = auth_service.create_tokens(user.id,user.email)
+        auth_service.set_tokens_cookies(response,access_token,refresh_token)
+        return user
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed"
+        )
 
 @router.post("/login", response_model=UserResponse)
 def login(
-        form_data: OAuth2PasswordRequestForm = Depends(),
-        response: Response = None,
+        user_data: UserLogin,
+        response: Response ,
         db: Session = Depends(get_db),
 ):
-    user_repository = UserRepository(db)
-    auth_service = AuthorizationService(user_repository)
-    user = auth_service.login_user(UserLogin)
-    access_token,refresh_token = auth_service.create_tokens(user.id,user.email)
-    auth_service.set_tokens_cookies(response,access_token,refresh_token)
-    return user
+    try:
+        print(f"🔧 DEBUG: Login attempt for {user_data.email}")
+
+        user_repository = UserRepository(db)
+        auth_service = AuthorizationService(user_repository)
+
+        user = auth_service.login_user(user_data)
+
+        access_token, refresh_token = auth_service.create_tokens(user.id, user.email)
+        auth_service.set_tokens_cookies(response, access_token, refresh_token)
+
+        print(f"🔧 DEBUG: Login successful for {user.email}")
+        return user
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"🔴 ERROR in login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Login failed"
+        )
 
 @router.get("/logout")
 def logout(response: Response):
@@ -78,3 +101,14 @@ def refresh_token(
         max_age=settings.access_token_expire_minutes * 60
     )
     return {"message": "Access token refreshed"}
+@router.get("/debug/cookies")
+def debug_cookies(request: Request):
+    """Проверка получения cookies на сервере"""
+    return {
+        "cookies_received": dict(request.cookies),
+        "access_token_received": request.cookies.get("access_token"),
+        "headers": {
+            "user-agent": request.headers.get("user-agent"),
+            "origin": request.headers.get("origin"),
+        }
+    }

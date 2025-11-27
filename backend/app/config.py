@@ -11,15 +11,17 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ]
     static_dir: str = "static"
 
-    secret_key: str = "FinTrack@2024$Secure*Key#For%Personal&Budget"
+    secret_key: str = "my_super_secret_finance_tracker_key_2024_secure_256bit"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
-    cookie_domain: str = "localhost"
+    cookie_domain: str = ""
     cookie_secure: bool = False
     cookie_samesite: str = "lax"
 

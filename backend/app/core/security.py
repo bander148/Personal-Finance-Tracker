@@ -22,10 +22,22 @@ class JWTManager:
             'type': 'access'
         })
         header = {"alg": self.algorithm}
-        return jwt.encode(to_encode, self._key, headers=header)
+        encoded_jwt = jwt.encode(header, to_encode, self._key)
+        print(f"🔧 DEBUG: Authlib returned: {type(encoded_jwt)} - {encoded_jwt}")
+
+        # Если это байты - декодируем, если строка - оставляем как есть
+        if isinstance(encoded_jwt, bytes):
+            print("🔧 DEBUG: Converting bytes to string")
+            encoded_jwt = encoded_jwt.decode('utf-8')
+
+        return encoded_jwt
+        return encoded_jwt
 
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         try:
+            if token.startswith("b'") and token.endswith("'"):
+                print("🔧 DEBUG: Fixing malformed token string")
+                token = token[2:-1]
             decoded = jwt.decode(token,self._key)
             decoded.validate()
             return decoded
@@ -41,9 +53,14 @@ class JWTManager:
             'type': 'refresh'
         })
         header = {"alg": self.algorithm}
-        return jwt.encode(header, to_encode, self._key)
+        encoded_jwt = jwt.encode(header, to_encode, self._key)
+        if isinstance(encoded_jwt, bytes):
+            encoded_jwt = encoded_jwt.decode('utf-8')
 
-    def refresh_access_token(self, refresh_token: str) -> Optional[Dict[str, Any]]:
+        print(f"🔧 DEBUG: Refresh token type: {type(encoded_jwt)}")
+        return encoded_jwt
+
+def refresh_access_token(self, refresh_token: str) -> Optional[Dict[str, Any]]:
         payload = self.verify_token(refresh_token)
         if not payload or payload.get('type') != 'refresh':
             return None

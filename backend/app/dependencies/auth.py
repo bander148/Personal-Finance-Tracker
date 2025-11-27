@@ -32,7 +32,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    payload = auth_service.varify_token(token)
+    payload = auth_service.verify_token(token)
     if not payload or payload["type"] != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
