@@ -34,6 +34,7 @@ class CategoryCreate(BaseModel):
         if not v.strip():
             raise ValueError('Category name cannot be empty')
         return v.strip()
+    user_id : int = Field(gt=0, description="User ID")
 
 
 class CategoryResponse(BaseModel):
