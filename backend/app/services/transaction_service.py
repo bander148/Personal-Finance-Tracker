@@ -19,7 +19,7 @@ class TransactionService:
         skip: int = 0,
         limit: int = 100
     ) -> List[TransactionResponse]:
-        transactions = self.repository.get_by_user_id(skip=skip, limit=limit)
+        transactions = self.repository.get_by_user_id(user_id,skip=skip, limit=limit)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
     def get_transaction_by_id(self, transaction_id: int,user_id : int) -> TransactionResponse:
@@ -31,43 +31,43 @@ class TransactionService:
             )
         return TransactionResponse.model_validate(transaction)
 
-    def get_transactions_by_date(self, transaction_date: date) -> List[TransactionResponse]:
-        transactions = self.repository.get_by_date(transaction_date)
+    def get_transactions_by_date(self, user_id : int,transaction_date: date) -> List[TransactionResponse]:
+        transactions = self.repository.get_by_date(transaction_date,user_id)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
-    def get_transactions_by_category_id(self, category_id: int) -> List[TransactionResponse]:
-        category = self.category_repository.get_by_id(category_id)
+    def get_transactions_by_category_id(self, category_id: int,user_id : int) -> List[TransactionResponse]:
+        category = self.category_repository.get_user_category_by_id(category_id,user_id)
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Category with id {category_id} not found"
             )
 
-        transactions = self.repository.get_by_category_id(category_id)
+        transactions = self.repository.get_by_category_id(category_id,user_id)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
     def get_transactions_by_date_range(
             self,
             start_date: date,
-            end_date: date
+            end_date: date,
+            user_id : int
     ) -> List[TransactionResponse]:
-        transactions = self.repository.get_by_date_range(start_date, end_date)
+        transactions = self.repository.get_by_date_range(start_date, end_date,user_id)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
-    def get_transactions_by_type(self, transaction_type: str) -> List[TransactionResponse]:
-        transactions = self.repository.get_by_type(transaction_type)
+    def get_transactions_by_type(self, transaction_type: str,user_id : int) -> List[TransactionResponse]:
+        transactions = self.repository.get_by_type(transaction_type,user_id)
         return [TransactionResponse.model_validate(trans) for trans in transactions]
 
     def create_transaction(self, transaction: TransactionCreate,user_id: int) -> TransactionResponse:
-        category = self.category_repository.get_by_id(transaction.category_id)
+        category = self.category_repository.get_user_category_by_id(transaction.category_id,user_id)
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Category with id {transaction.category_id} not found"
             )
         transaction_data = transaction.model_dump()
-        transaction_data['user_id'] = user_id
-        db_transaction = self.repository.create_transaction(transaction)
+        db_transaction = self.repository.create_transaction(transaction,user_id)
         return TransactionResponse.model_validate(db_transaction)
 
     def delete_transaction(self, transaction_id: int,user_id: int) -> dict:
